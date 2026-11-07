@@ -210,9 +210,11 @@ async function loadAdmin(){if(!A().isAdmin)return;
  const cc=await sb.from("categories").select("*").order("sort");if(cc.data)S.cats=cc.data}
 function loginView(){const a=A();$("#app").innerHTML=`<div class="wrap" style="max-width:460px"><div class="panel" style="margin-top:24px"><h2>دخول الإدارة</h2>
  ${a.session&&!a.isAdmin?`<p class="err">الإيميل ${esc(a.session.user.email)} مش مسموح له بالإدارة.</p><button class="btn ghost" data-act="logout">تسجيل خروج</button>`:`
- <div class="form"><p class="muted" style="margin:0">اكتب إيميل الإدارة وهيوصلك رابط دخول على الإيميل. العملاء مش محتاجين تسجيل.</p>
+ <div class="form"><p class="muted" style="margin:0">ادخل بإيميل الإدارة والباسورد. العملاء مش محتاجين تسجيل.</p>
  <label>الإيميل<input id="ad-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com"></label>
- <button class="btn" data-act="sendlink">ابعت رابط الدخول</button>
+ <label>الباسورد<input id="ad-pw" type="password" autocomplete="current-password"></label>
+ <button class="btn" data-act="pwlogin">دخول</button>
+ <details><summary class="muted" style="cursor:pointer">أو ادخل برابط على الإيميل</summary><div class="form" style="margin-top:8px"><button class="btn ghost" data-act="sendlink">ابعت رابط الدخول</button></div></details>
  ${a.sent?`<div class="note">اتبعت الرابط. افتح الإيميل واضغط عليه من نفس الجهاز، وراجع الـ Spam لو مجاش.</div>
  <label>أو اكتب الكود لو الإيميل فيه كود<input id="ad-code" inputmode="numeric" placeholder="الكود"></label><button class="btn ghost" data-act="verify">دخول بالكود</button>`:""}
  <div class="err">${esc(a.msg)}</div></div>`}</div></div>`}
@@ -300,6 +302,7 @@ document.addEventListener("click",async ev=>{
  case"track":{const r=await sb.rpc("track_order",{oid:$("#t-id").value.trim(),ph:$("#t-ph").value.trim().replace(/[\s+\-]/g,"").replace(/^20/,"0")});const el=$("#t-res");if(r.data){const o=r.data;el.className="note";el.innerHTML=`طلب <b>${esc(o.id)}</b><br>الحالة: <b>${esc(SLABEL[o.status]||o.status)}</b><br>العربون: ${o.deposit_paid?"وصل ✓":"لسه ما وصلش"}<br>الإجمالي: ${fmt(o.total)}`}else{el.className="err";el.textContent="مش لاقيين الطلب. راجع رقم الطلب والموبايل."}break}
  case"font":S.dz.font=t.dataset.f;await document.fonts.load(`40px '${S.dz.font}'`,S.dz.text||"Aa");document.querySelectorAll(".fbtn").forEach(b=>b.classList.toggle("on",b.dataset.f===S.dz.font));drawCase();break;
  case"dzadd":dzAdd();break;
+ case"pwlogin":{const em=($("#ad-email").value||"").trim(),pw=$("#ad-pw").value;if(!em||!pw){ad.msg="اكتب الإيميل والباسورد.";viewAdmin();break}const r=await sb.auth.signInWithPassword({email:em,password:pw});if(r.error){ad.msg="الإيميل أو الباسورد غلط.";viewAdmin()}break}
  case"sendlink":{const em=($("#ad-email").value||"").trim();if(!em)return;ad.msg="";const r=await sb.auth.signInWithOtp({email:em,options:{emailRedirectTo:location.origin+location.pathname+"#admin",shouldCreateUser:true}});if(r.error)ad.msg="تعذّر إرسال الرابط: "+r.error.message;else{ad.sent=true;ad.email=em}viewAdmin();break}
  case"verify":{const r=await sb.auth.verifyOtp({email:ad.email||$("#ad-email").value.trim(),token:$("#ad-code").value.trim(),type:"email"});if(r.error){ad.msg="الكود غير صحيح أو منتهي.";viewAdmin()}break}
  case"logout":await sb.auth.signOut();ad.sent=false;await checkAdmin();viewAdmin();break;
