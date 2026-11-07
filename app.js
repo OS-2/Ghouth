@@ -200,9 +200,10 @@ async function dzAdd(){const d=S.dz;const er=$("#dz-err");
 
 /* ---------- admin ---------- */
 const A=()=>S.admin;
-async function checkAdmin(){const {data}=await sb.auth.getSession();A().session=data.session;A().isAdmin=false;
- if(data.session){const r=await sb.rpc("is_admin");A().isAdmin=r.data===true}A().checked=true;$("#adminLink").textContent=A().isAdmin?"لوحة الإدارة":"الإدارة"}
-sb.auth.onAuthStateChange(async()=>{await checkAdmin();if(location.hash==="#admin"){await loadAdmin();viewAdmin()}});
+async function checkAdminInner(){const {data}=await sb.auth.getSession();A().session=data.session;A().isAdmin=false;
+ if(data.session){const r=await sb.rpc("is_admin");A().isAdmin=r.data===true}}
+async function checkAdmin(){try{await Promise.race([checkAdminInner(),new Promise((_,rej)=>setTimeout(rej,6000))])}catch(e){}A().checked=true;$("#adminLink").textContent=A().isAdmin?"لوحة الإدارة":"الإدارة"}
+sb.auth.onAuthStateChange(()=>{setTimeout(async()=>{if(location.hash.includes("access_token")){history.replaceState(null,"",location.pathname+"#admin")}await checkAdmin();if(location.hash==="#admin"){await loadAdmin();viewAdmin()}},0)});
 async function loadAdmin(){if(!A().isAdmin)return;
  const [o,c]=await Promise.all([sb.from("orders").select("*").order("created_at",{ascending:false}).limit(300),sb.from("coupons").select("*").order("code")]);
  A().orders=o.data||[];A().coupons=c.data||[];
@@ -353,5 +354,5 @@ document.addEventListener("change",async ev=>{const t=ev.target;
 $("#menuBtn").onclick=openMenu;$("#searchBtn").onclick=openSearch;$("#sclose").onclick=closeSearch;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeMenu();closeSearch()}});
 setInterval(async()=>{if(location.hash==="#admin"&&A().isAdmin&&A().tab==="orders"&&!document.activeElement.closest("#ab select,#ab input")){const o=await sb.from("orders").select("*").order("created_at",{ascending:false}).limit(300);if(o.data&&o.data.length!==A().orders.length){A().orders=o.data;drawAdmin();toast("وصل طلب جديد")}}},25000);
-(async function boot(){chrome();route();await checkAdmin();loadData();if(location.hash==="#admin"){await loadAdmin();viewAdmin()}})();
+(async function boot(){chrome();route();loadData();await checkAdmin();if(location.hash==="#admin"){await loadAdmin();viewAdmin()}})();
 })();
