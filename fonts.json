@@ -1,0 +1,134 @@
+[
+ {
+  "name": "GH-ekalem",
+  "label": "إي قلم",
+  "file": "f-ekalem.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-aldhabi",
+  "label": "الذهبي",
+  "file": "f-aldhabi.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-dark",
+  "label": "دارك",
+  "file": "f-dark.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-giddam",
+  "label": "جدام",
+  "file": "f-giddam.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-hayah",
+  "label": "حياة",
+  "file": "f-hayah.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-hiwaya",
+  "label": "هواية",
+  "file": "f-hiwaya.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-lifta",
+  "label": "ليفتا",
+  "file": "f-lifta.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-komedia",
+  "label": "كي أو ميديا",
+  "file": "f-komedia.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-odai",
+  "label": "عدي",
+  "file": "f-odai.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-sonbola",
+  "label": "سنبلة",
+  "file": "f-sonbola.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-originals",
+  "label": "ذا أوريجنالز",
+  "file": "f-originals.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-abuhmeda",
+  "label": "أبو حميدة",
+  "file": "f-abuhmeda.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-dtpn3",
+  "label": "نسخ دي تي بي",
+  "file": "f-dtpn3.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-thuluth",
+  "label": "ثلث",
+  "file": "f-thuluth.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-diwani-bent",
+  "label": "ديواني منحني",
+  "file": "f-diwani-bent.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-diwani",
+  "label": "ديواني",
+  "file": "f-diwani.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-diwani-jaly",
+  "label": "ديواني جلي",
+  "file": "f-diwani-jaly.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-typokar",
+  "label": "تايبوكار",
+  "file": "f-typokar.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-typokar-special",
+  "label": "تايبوكار خاص",
+  "file": "f-typokar-special.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-typokar-collection",
+  "label": "تايبوكار كوليكشن",
+  "file": "f-typokar-collection.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-typokar3",
+  "label": "تايبوكار 3",
+  "file": "f-typokar3.woff",
+  "lang": "ar"
+ },
+ {
+  "name": "GH-typokar-r",
+  "label": "تايبوكار ريجولر",
+  "file": "f-typokar-r.woff",
+  "lang": "ar"
+ }
+]
