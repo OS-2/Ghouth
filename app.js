@@ -171,7 +171,7 @@ function drawSum(){const o=calc();const s=$("#sum");if(!s)return;
  s.innerHTML=`<div class="sum"><div><span>المنتجات</span><span>${fmt(o.sub)}</span></div>${o.cd?`<div><span>خصم الكود (${esc(S.coupon.code)})</span><span>−${fmt(o.cd)}</span></div>`:""}<div><span>الشحن (سعر واحد للطلب)</span><span>${o.g?fmt(o.ship):"يتحدد بالمحافظة"}</span></div><div class="tot"><span>الإجمالي</span><span>${fmt(o.total)}</span></div></div>`;
  $("#depo").innerHTML=`<div class="note"><b>العربون مطلوب قبل ما الطلب يتأكد:</b> ${+S.settings.deposit||0}% من الإجمالي = <b>${fmt(o.dep)}</b>. الأوردر بيتجهّز بعد وصول العربون.<br>${payHow()}<br>ابعت صورة التحويل على واتساب بعد التأكيد. المتبقي: ${fmt(o.total-o.dep)}.</div>`}
 function readForm(){const g=id=>($("#"+id)||{}).value;if(!$("#f-name"))return;Object.assign(S.form,{name:g("f-name"),phone:g("f-phone"),addr:g("f-addr"),note:g("f-note")});S.gov=g("f-gov")}
-async function place(){readForm();const f=S.form,e=$("#err"),btn=$("#placeBtn");const ph0=String(f.phone||"").replace(/[\s+\-]/g,"").replace(/^20/,"0");
+async function place(){readForm();const f=S.form,e=$("#err"),btn=$("#placeBtn");const ph0=dg(f.phone||"").replace(/[\s+\-]/g,"").replace(/^20/,"0");
  if(!(f.name||"").trim())return e.textContent="اكتب اسمك من فضلك.";
  if(!/^01[0125]\d{8}$/.test(ph0))return e.textContent="رقم الموبايل لازم يكون 11 رقم ويبدأ بـ 01.";
  if(!S.gov)return e.textContent="اختر المحافظة.";if(!(f.addr||"").trim())return e.textContent="اكتب العنوان بالتفصيل.";
@@ -288,8 +288,9 @@ function viewAff(){const W=t=>'<div class="wrap" style="max-width:560px"><div cl
  <div class="panel" style="margin-top:12px"><h2>روابط المنتجات</h2><p class="muted" style="margin-top:0">انسخ رابط منتج معيّن مع عمولتك التقريبية.</p>${prods.map(x=>`<div class="mini" style="justify-content:space-between;margin-bottom:6px"><span>${esc(x.name)} · <b>${fmt(Math.round(price(x)*d.rate/100))}</b></span><button class="chip" data-act="afcopy" data-v="${esc(afLink(pr.code,"#p-"+x.id))}">نسخ</button></div>`).join("")}</div>
  <div style="padding:16px 0 40px"><button class="btn ghost" data-act="aflogout">تسجيل خروج</button></div></div>`}
 async function afRefresh(){await loadAff();if(location.hash==="#affiliate")viewAff()}
-const AFERR={invalid:"راجع البيانات: الموبايل 11 رقم والحساب مطلوب.",exists:"الحساب مسجّل قبل كده.",below_min:"الرصيد أقل من الحد الأدنى.",open_request:"عندك طلب سحب مفتوح.",not_active:"الحساب لسه مش مفعّل."};
-const afErr=e=>{const m=(e&&e.message)||"";for(const k in AFERR)if(m.includes(k))return AFERR[k];return"تعذّرت العملية. جرّب تاني."};
+const dg=v=>String(v||"").replace(/[٠-٩]/g,c=>c.charCodeAt(0)-1632).replace(/[۰-۹]/g,c=>c.charCodeAt(0)-1776);
+const AFERR={invalid:"راجع البيانات: الموبايل 11 رقم ويبدأ بـ 01 والحساب مطلوب.",exists:"الحساب مسجّل قبل كده.",below_min:"الرصيد أقل من الحد الأدنى.",open_request:"عندك طلب سحب مفتوح.",not_active:"الحساب لسه مش مفعّل."};
+const afErr=e=>{const m=(e&&e.message)||"";for(const k in AFERR)if(m.includes(k))return AFERR[k];return"تعذّرت العملية: "+m};
 async function afDo(a,ev){
  if(a==="afmode"){AF.mode=AF.mode==="signup"?"login":"signup";AF.msg="";viewAff();return}
  if(a==="aflogout"){await sb.auth.signOut();AF.session=null;AF.dash=null;AF.msg="";viewAff();return}
@@ -300,7 +301,7 @@ async function afDo(a,ev){
   if(r.error){AF.msg=a==="afsignup"?"تعذّر إنشاء الحساب: "+r.error.message:"الإيميل أو الباسورد غلط.";viewAff();return}
   if(!r.data.session){AF.msg="اتبعتلك رسالة تأكيد على الإيميل. اضغط عليها وبعدين ادخل.";AF.mode="login";viewAff();return}
   await afRefresh();return}
- if(a==="afreg"){const ph=g("af-ph").replace(/[\s+\-]/g,"").replace(/^20/,"0"),nm=g("af-nm"),meth=g("af-pm"),acct=g("af-ac");AF.busy=true;viewAff();const r=await sb.rpc("register_affiliate",{nm,ph,meth,acct});AF.busy=false;if(r.error){AF.msg=afErr(r.error);viewAff();return}await afRefresh();return}
+ if(a==="afreg"){const ph=dg(g("af-ph")).replace(/[\s+\-]/g,"").replace(/^20/,"0"),nm=g("af-nm"),meth=g("af-pm"),acct=g("af-ac");AF.busy=true;viewAff();const r=await sb.rpc("register_affiliate",{nm,ph,meth,acct});AF.busy=false;if(r.error){AF.msg=afErr(r.error);viewAff();return}await afRefresh();return}
  if(a==="afsaveacct"){const r=await sb.rpc("update_affiliate_payout",{meth:g("af-pm"),acct:g("af-ac")});if(r.error)toast(afErr(r.error));else{toast("تم الحفظ");await afRefresh()}return}
  if(a==="afpay"){const r=await sb.rpc("request_payout",{amt:AF.dash.stats.available});if(r.error){AF.msg=afErr(r.error);viewAff()}else{toast("اتبعت طلب السحب");await afRefresh()}return}
 }
