@@ -300,7 +300,7 @@ async function afDo(a,ev){
   if(r.error){AF.msg=a==="afsignup"?"تعذّر إنشاء الحساب: "+r.error.message:"الإيميل أو الباسورد غلط.";viewAff();return}
   if(!r.data.session){AF.msg="اتبعتلك رسالة تأكيد على الإيميل. اضغط عليها وبعدين ادخل.";AF.mode="login";viewAff();return}
   await afRefresh();return}
- if(a==="afreg"){AF.busy=true;viewAff();const ph=g("af-ph").replace(/[\s+\-]/g,"").replace(/^20/,"0");const r=await sb.rpc("register_affiliate",{nm:g("af-nm"),ph,meth:g("af-pm"),acct:g("af-ac")});AF.busy=false;if(r.error){AF.msg=afErr(r.error);viewAff();return}await afRefresh();return}
+ if(a==="afreg"){const ph=g("af-ph").replace(/[\s+\-]/g,"").replace(/^20/,"0"),nm=g("af-nm"),meth=g("af-pm"),acct=g("af-ac");AF.busy=true;viewAff();const r=await sb.rpc("register_affiliate",{nm,ph,meth,acct});AF.busy=false;if(r.error){AF.msg=afErr(r.error);viewAff();return}await afRefresh();return}
  if(a==="afsaveacct"){const r=await sb.rpc("update_affiliate_payout",{meth:g("af-pm"),acct:g("af-ac")});if(r.error)toast(afErr(r.error));else{toast("تم الحفظ");await afRefresh()}return}
  if(a==="afpay"){const r=await sb.rpc("request_payout",{amt:AF.dash.stats.available});if(r.error){AF.msg=afErr(r.error);viewAff()}else{toast("اتبعت طلب السحب");await afRefresh()}return}
 }
