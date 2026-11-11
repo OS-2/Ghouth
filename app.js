@@ -211,11 +211,11 @@ function viewDesign(){const d=S.dz;loadDesignFonts();const tl=S.tpls.filter(t=>t
  <button class="btn" id="dz-add" data-act="dzadd" ${d.busy?"disabled":""}>${d.busy?"جاري رفع التصميم…":"أضف التصميم للسلة"}</button></div></div></div>`;
  drawCase()}
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
-function paintCase(c,hideGuides){const d=S.dz;c.clearRect(0,0,W,H);c.save();rr(c,10,10,W-20,H-20,90);c.clip();c.fillStyle=d.bg;c.fillRect(0,0,W,H);if(d.tplImg){const iw=d.tplImg.width,ih=d.tplImg.height,k=Math.max(W/iw,H/ih);c.drawImage(d.tplImg,(W-iw*k)/2,(H-ih*k)/2,iw*k,ih*k)}else if(d.tpl){const t=TPLS.find(x=>x.id===d.tpl);if(t)t.f(c)}
+function paintCase(c,hideGuides){const d=S.dz;c.clearRect(0,0,W,H);c.save();if(hideGuides){c.beginPath();c.rect(0,0,W,H);c.clip()}else{rr(c,10,10,W-20,H-20,90);c.clip()}c.fillStyle=d.bg;c.fillRect(0,0,W,H);if(d.tplImg){const iw=d.tplImg.width,ih=d.tplImg.height,k=Math.max(W/iw,H/ih);c.drawImage(d.tplImg,(W-iw*k)/2,(H-ih*k)/2,iw*k,ih*k)}else if(d.tpl){const t=TPLS.find(x=>x.id===d.tpl);if(t)t.f(c)}
  if(d.tplImg){const iw=d.tplImg.width,ih=d.tplImg.height,k=Math.max(W/iw,H/ih);c.drawImage(d.tplImg,(W-iw*k)/2,(H-ih*k)/2,iw*k,ih*k)}else if(d.tpl){const t=TPLS.find(x=>x.id===d.tpl);if(t)t.f(c)}
  if(d.img){const iw=d.img.width,ih=d.img.height;const base=Math.max(W/iw,H/ih);const s=base*d.scale;const w=iw*s,h=ih*s;c.drawImage(d.img,(W-w)/2+d.ox,(H-h)/2+d.oy,w,h)}
  if(d.text){c.fillStyle=d.color;c.textAlign="center";c.textBaseline="middle";c.font=`${d.tsize}px '${d.font}', sans-serif`;c.shadowColor="rgba(0,0,0,.45)";c.shadowBlur=8;c.fillText(d.text,d.tx,d.ty,W-90);c.shadowBlur=0}
- c.restore();
+ c.restore();if(hideGuides)return;
  c.fillStyle="#0e0e0e";rr(c,44,44,210,210,52);c.fill();c.strokeStyle="#3a3a3a";c.lineWidth=4;c.stroke();
  [[110,110],[190,110],[150,190]].forEach(([x,y])=>{c.fillStyle="#1d1d1d";c.beginPath();c.arc(x,y,32,0,7);c.fill();c.strokeStyle="#555";c.lineWidth=3;c.stroke();c.fillStyle="#08080a";c.beginPath();c.arc(x,y,17,0,7);c.fill()});
  c.strokeStyle="#c9a94f";c.lineWidth=5;rr(c,10,10,W-20,H-20,90);c.stroke()}
@@ -233,7 +233,7 @@ async function dzAdd(){const d=S.dz;const er=$("#dz-err");
  er.textContent="";d.busy=true;$("#dz-add").disabled=true;$("#dz-add").textContent="جاري رفع التصميم…";
  try{await document.fonts.load(`40px '${d.font}'`,d.text||"Aa");drawCase();
   const pv=document.createElement("canvas");pv.width=W/2;pv.height=H/2;const pc=pv.getContext("2d");const full=document.createElement("canvas");full.width=W;full.height=H;paintCase(full.getContext("2d"));pc.drawImage(full,0,0,W/2,H/2);
-  const fl=document.createElement("canvas");fl.width=W*2;fl.height=H*2;const fx=fl.getContext("2d");fx.scale(2,2);paintCase(fx);const fullBlob=await new Promise(r=>fl.toBlob(r,"image/png"));const fullUrl=await upload("designs",fullBlob,"png");
+  const fl=document.createElement("canvas");fl.width=W*2;fl.height=H*2;const fx=fl.getContext("2d");fx.scale(2,2);paintCase(fx,true);const fullBlob=await new Promise(r=>fl.toBlob(r,"image/png"));const fullUrl=await upload("designs",fullBlob,"png");
   const prevBlob=await new Promise(r=>pv.toBlob(r,"image/png"));const preview=await upload("designs",prevBlob,"png");
   let original="";if(d.file){const ob=await shrinkFile(d.file,2400,"image/jpeg",.9);original=await upload("designs",ob,"jpg")}
   S.cart.push({type:"custom",brand:d.brand,model:d.model,text:d.text,font:d.font,preview,full:fullUrl,original,qty:1});save("ghouth-cart",S.cart);chrome();d.busy=false;toast("اتضاف التصميم للسلة");location.hash="cart"
