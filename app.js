@@ -176,7 +176,7 @@ async function place(){readForm();const f=S.form,e=$("#err"),btn=$("#placeBtn");
  if(!/^01[0125]\d{8}$/.test(ph0))return e.textContent="رقم الموبايل لازم يكون 11 رقم ويبدأ بـ 01.";
  if(!S.gov)return e.textContent="اختر المحافظة.";if(!(f.addr||"").trim())return e.textContent="اكتب العنوان بالتفصيل.";
  e.textContent="";btn.disabled=true;btn.textContent="جاري إرسال الطلب…";
- const items=S.cart.map(c=>c.type==="custom"?{type:"custom",brand:c.brand,model:c.model,text:c.text,font:c.font,preview:c.preview,original:c.original,qty:c.qty}:{type:"product",pid:c.pid,opt:c.opt||"",qty:c.qty});
+ const items=S.cart.map(c=>c.type==="custom"?{type:"custom",brand:c.brand,model:c.model,text:c.text,font:c.font,preview:c.preview,full:c.full||"",original:c.original,qty:c.qty}:{type:"product",pid:c.pid,opt:c.opt||"",qty:c.qty});
  const {data,error}=await sbPub.rpc("place_order",{p:{name:f.name.trim(),phone:ph0,gov:S.gov,addr:f.addr.trim(),note:(f.note||"").trim(),pay:f.pay,coupon:S.coupon?S.coupon.code:"",ref:getRef(),items}});
  btn.disabled=false;btn.textContent="تأكيد الطلب";
  if(error){const m=error.message||"";e.textContent=m.includes("out_of_stock")?"الكمية المتاحة من "+m.split("out_of_stock:")[1]+" مش كفاية. قلّل الكمية أو شيله من السلة.":m.includes("product_missing")?"فيه منتج في السلة مبقاش متاح. احذفه وكمّل.":"تعذّر إرسال الطلب. جرّب تاني أو كلمنا على واتساب.";if(m.includes("out_of_stock")||m.includes("product_missing"))loadData();return}
@@ -233,9 +233,10 @@ async function dzAdd(){const d=S.dz;const er=$("#dz-err");
  er.textContent="";d.busy=true;$("#dz-add").disabled=true;$("#dz-add").textContent="جاري رفع التصميم…";
  try{await document.fonts.load(`40px '${d.font}'`,d.text||"Aa");drawCase();
   const pv=document.createElement("canvas");pv.width=W/2;pv.height=H/2;const pc=pv.getContext("2d");const full=document.createElement("canvas");full.width=W;full.height=H;paintCase(full.getContext("2d"));pc.drawImage(full,0,0,W/2,H/2);
+  const fl=document.createElement("canvas");fl.width=W*2;fl.height=H*2;const fx=fl.getContext("2d");fx.scale(2,2);paintCase(fx);const fullBlob=await new Promise(r=>fl.toBlob(r,"image/png"));const fullUrl=await upload("designs",fullBlob,"png");
   const prevBlob=await new Promise(r=>pv.toBlob(r,"image/png"));const preview=await upload("designs",prevBlob,"png");
   let original="";if(d.file){const ob=await shrinkFile(d.file,2400,"image/jpeg",.9);original=await upload("designs",ob,"jpg")}
-  S.cart.push({type:"custom",brand:d.brand,model:d.model,text:d.text,font:d.font,preview,original,qty:1});save("ghouth-cart",S.cart);chrome();d.busy=false;toast("اتضاف التصميم للسلة");location.hash="cart"
+  S.cart.push({type:"custom",brand:d.brand,model:d.model,text:d.text,font:d.font,preview,full:fullUrl,original,qty:1});save("ghouth-cart",S.cart);chrome();d.busy=false;toast("اتضاف التصميم للسلة");location.hash="cart"
  }catch(e){d.busy=false;d.err="تعذّر رفع التصميم. جرّب صورة أصغر أو اتصل بنا.";viewDesign()}}
 
 /* ---------- admin ---------- */
@@ -269,17 +270,17 @@ function viewAff(){const W=t=>'<div class="wrap" style="max-width:560px"><div cl
   <button class="btn" data-act="afreg" ${AF.busy?"disabled":""}>إرسال الطلب</button>${e}
   <button class="btn ghost" data-act="aflogout">تسجيل خروج</button></div>`);return}
  const d=AF.dash,pr=d.profile,st=d.stats;
- if(pr.status!=="active"){$("#app").innerHTML=W(`<h2>${pr.status==="blocked"?"الحساب موقوف":"طلبك قيد المراجعة"}</h2><p class="muted">${pr.status==="blocked"?"تواصل معنا على واتساب لمعرفة السبب.":"هنفعّل حسابك قريب، وبعدها يظهر رابطك هنا."}</p><button class="btn ghost" data-act="aflogout">تسجيل خروج</button>`);return}
+ if(pr.status!=="active"){$("#app").innerHTML=W(`<h2>${pr.status==="blocked"?"الحساب موقوف":"طلبك قيد المراجعة"}</h2><p class="muted">${pr.status==="blocked"?"تواصل معنا على واتساب لمعرفة السبب.":"سيتم الموافقة على طلبك في خلال ساعة، وبعدها يظهر رابطك هنا."}</p><button class="btn ghost" data-act="aflogout">تسجيل خروج</button>`);return}
  const link=afLink(pr.code),can=st.available>=d.min&&!st.requested;
  const prods=S.products.filter(x=>x.active!==false).slice(0,40);
- $("#app").innerHTML=`<div class="wrap" style="max-width:720px"><h1 style="font-size:24px;padding-top:20px">أهلاً ${esc(pr.name)}</h1>
+ $("#app").innerHTML=`<div class="wrap" style="max-width:720px"><div class="note" style="margin-top:16px;text-align:center">📢 سحب الأرباح بيتم أسبوعياً يوم الجمعة.</div><h1 style="font-size:24px;padding-top:12px">أهلاً ${esc(pr.name)}</h1>
  <div class="panel" style="margin-top:12px"><h2>رابطك الخاص</h2><input id="af-link" readonly value="${esc(link)}" onclick="this.select()" style="direction:ltr">
  <div class="mini" style="margin-top:8px"><button class="btn" style="min-height:38px" data-act="afcopy" data-v="${esc(link)}">نسخ الرابط</button><a class="btn ghost" style="min-height:38px" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent("تسوّق من غَوْث: "+link)}">مشاركة واتساب</a></div>
  <p class="muted" style="margin-bottom:0">عمولتك ${+d.rate}% من قيمة الطلب بعد الخصم (بدون الشحن). بتتحسب بعد تسليم الطلب.</p></div>
  <div class="panel" style="margin-top:12px"><h2>أرباحك</h2><div class="two">
  <div><div class="muted">متاح للسحب</div><b style="font-size:22px">${fmt(st.available)}</b></div><div><div class="muted">قيد الانتظار</div><b style="font-size:22px">${fmt(st.pending)}</b></div>
  <div><div class="muted">طلبات السحب</div><b>${fmt(st.requested)}</b></div><div><div class="muted">اتحوّل لك</div><b>${fmt(st.paid)}</b></div></div>
- <button class="btn" style="margin-top:12px" data-act="afpay" ${can?"":"disabled"}>اطلب سحب ${fmt(st.available)}</button>
+ <label style="margin-top:12px">المبلغ المطلوب سحبه (ج.م)<input id="af-amt" type="number" inputmode="numeric" min="${d.min}" max="${st.available}" value="${st.available}"></label><button class="btn" style="margin-top:8px" data-act="afpay" ${can?"":"disabled"}>اطلب السحب</button>
  <p class="muted" style="margin-bottom:0">${st.requested?"عندك طلب سحب مفتوح.":"الحد الأدنى للسحب "+fmt(d.min)+"."}</p><div class="err">${esc(AF.msg)}</div></div>
  <div class="panel" style="margin-top:12px"><h2>حساب الاستلام</h2><div class="form"><label>الطريقة<select id="af-pm"><option value="vodafone" ${pr.pay_method==="vodafone"?"selected":""}>فودافون كاش</option><option value="instapay" ${pr.pay_method==="instapay"?"selected":""}>إنستاباي</option></select></label>
  <label>الرقم أو الحساب<input id="af-ac" value="${esc(pr.pay_account)}"></label><button class="btn ghost" data-act="afsaveacct">حفظ</button></div></div>
@@ -289,7 +290,7 @@ function viewAff(){const W=t=>'<div class="wrap" style="max-width:560px"><div cl
  <div style="padding:16px 0 40px"><button class="btn ghost" data-act="aflogout">تسجيل خروج</button></div></div>`}
 async function afRefresh(){await loadAff();if(location.hash==="#affiliate")viewAff()}
 const dg=v=>String(v||"").replace(/[٠-٩]/g,c=>c.charCodeAt(0)-1632).replace(/[۰-۹]/g,c=>c.charCodeAt(0)-1776);
-const AFERR={invalid:"راجع البيانات: الموبايل 11 رقم ويبدأ بـ 01 والحساب مطلوب.",exists:"الحساب مسجّل قبل كده.",below_min:"الرصيد أقل من الحد الأدنى.",open_request:"عندك طلب سحب مفتوح.",not_active:"الحساب لسه مش مفعّل."};
+const AFERR={invalid:"راجع البيانات: الموبايل 11 رقم ويبدأ بـ 01 والحساب مطلوب.",exists:"الحساب مسجّل قبل كده.",below_min:"الرصيد أقل من الحد الأدنى.",open_request:"عندك طلب سحب مفتوح.",not_active:"الحساب لسه مش مفعّل.",insufficient:"المبلغ أكبر من رصيدك المتاح."};
 const afErr=e=>{const m=(e&&e.message)||"";for(const k in AFERR)if(m.includes(k))return AFERR[k];return"تعذّرت العملية: "+m};
 async function afDo(a,ev){
  if(a==="afmode"){AF.mode=AF.mode==="signup"?"login":"signup";AF.msg="";viewAff();return}
@@ -303,7 +304,7 @@ async function afDo(a,ev){
   await afRefresh();return}
  if(a==="afreg"){const ph=dg(g("af-ph")).replace(/[\s+\-]/g,"").replace(/^20/,"0"),nm=g("af-nm"),meth=g("af-pm"),acct=g("af-ac");AF.busy=true;viewAff();const r=await sb.rpc("register_affiliate",{nm,ph,meth,acct});AF.busy=false;if(r.error){AF.msg=afErr(r.error);viewAff();return}await afRefresh();return}
  if(a==="afsaveacct"){const r=await sb.rpc("update_affiliate_payout",{meth:g("af-pm"),acct:g("af-ac")});if(r.error)toast(afErr(r.error));else{toast("تم الحفظ");await afRefresh()}return}
- if(a==="afpay"){const r=await sb.rpc("request_payout",{amt:AF.dash.stats.available});if(r.error){AF.msg=afErr(r.error);viewAff()}else{toast("اتبعت طلب السحب");await afRefresh()}return}
+ if(a==="afpay"){const amt=Math.floor(+g("af-amt")||0);if(amt<AF.dash.min||amt>AF.dash.stats.available){AF.msg="اكتب مبلغ بين "+fmt(AF.dash.min)+" و "+fmt(AF.dash.stats.available)+".";viewAff();return}const r=await sb.rpc("request_payout",{amt});if(r.error){AF.msg=afErr(r.error);viewAff()}else{toast("اتبعت طلب السحب");await afRefresh()}return}
 }
 async function checkAdmin(){try{await Promise.race([checkAdminInner(),new Promise((_,rej)=>setTimeout(rej,6000))])}catch(e){}A().checked=true;$("#adminLink").textContent=A().isAdmin?"لوحة الإدارة":"الإدارة"}
 sb.auth.onAuthStateChange(()=>{setTimeout(async()=>{if(location.hash.includes("access_token")){history.replaceState(null,"",location.pathname+"#admin")}await checkAdmin();if(location.hash==="#admin"){await loadAdmin();viewAdmin()}if(location.hash==="#affiliate")afRefresh()},0)});
@@ -331,7 +332,7 @@ function viewAdmin(){const a=A();if(!a.checked){$("#app").innerHTML='<div class=
  <div class="tabs">${[["orders","الطلبات"],["products","المنتجات"],["cats","الأقسام"],["disc","الخصومات"],["tpls","قوالب التصميم"],["aff","المسوّقين"],["models","موديلات التليفونات"],["set","الإعدادات"]].map(([k,l])=>`<button class="chip" data-act="tab" data-v="${k}" aria-pressed="${a.tab===k}">${l}</button>`).join("")}</div><div id="ab" style="padding-bottom:40px"></div></div>`;drawAdmin()}
 function drawAdmin(){const b=$("#ab");if(!b)return;({orders:aOrders,products:aProducts,cats:aCats,disc:aDisc,tpls:aTpls,models:aModels,aff:aAff,set:aSet})[A().tab](b)}
 function orderItems(o){return (o.items||[]).map(i=>{
- if(i.type==="custom")return `<li class="oi"><img data-act="zoom" data-src="${esc(i.preview||"")}" src="${esc(i.preview||ph({name:"x"}))}" alt="معاينة"><div><b>تصميم خاص</b> × ${i.qty}<br>${esc(i.brand)} ${esc(i.model)}${i.text?"<br>الاسم: <b style='font-family:\""+esc(i.font)+"\"'>"+esc(i.text)+"</b> ("+esc(i.font)+")":""}${i.original?`<br><a class="pill" href="${esc(i.original)}" target="_blank" rel="noopener">الصورة الأصلية</a>`:""}</div></li>`;
+ if(i.type==="custom")return `<li class="oi"><img data-act="zoom" data-src="${esc(i.preview||"")}" src="${esc(i.preview||ph({name:"x"}))}" alt="معاينة"><div><b>تصميم خاص</b> × ${i.qty}<br>${esc(i.brand)} ${esc(i.model)}${i.text?"<br>الاسم: <b style='font-family:\""+esc(i.font)+"\"'>"+esc(i.text)+"</b> ("+esc(i.font)+")":""}${i.full?`<br><a class="pill" style="border-color:var(--gold)" href="${esc(i.full)}" target="_blank" rel="noopener">التصميم كامل (للطباعة)</a> `:""}${i.original?`<br><a class="pill" href="${esc(i.original)}" target="_blank" rel="noopener">الصورة الأصلية</a>`:""}</div></li>`;
  const p=S.products.find(x=>x.id===i.pid);const im=i.img||(p&&p.images&&p.images[0])||"";
  return `<li class="oi"><img ${im?`data-act="zoom" data-src="${esc(im)}"`:""} src="${esc(im||ph({name:i.name}))}" alt="${esc(i.name)}"><div><b>${esc(i.name)}</b>${i.opt?"<br>"+esc(i.opt):""}<br>× ${i.qty} = ${fmt(i.price*i.qty)}</div></li>`}).join("")}
 function aOrders(b){const a=A();const L=a.orders.filter(o=>a.filter==="all"||o.status===a.filter);
@@ -374,7 +375,7 @@ function aAff(b){const a=A(),L=a.affs||[],P=a.pays||[];const nm=id=>(L.find(x=>x
  <div><span class="sel">${esc(x.phone)}</span> · ${esc(PM[x.pay_method]||x.pay_method)}: <span class="sel">${esc(x.pay_account)}</span></div>
  <div class="muted">طلبات ${x.orders} · قيد الانتظار ${fmt(x.pending)} · متاح ${fmt(x.available)} · اتدفع ${fmt(x.paid)}</div>
  <div class="mini"><input id="ar-${x.id}" type="number" min="0" max="90" placeholder="نسبة خاصة %" value="${x.rate==null?"":x.rate}" style="width:110px"><button class="chip" data-act="xaffrate" data-id="${x.id}">حفظ النسبة</button>
- ${x.status!=="active"?`<button class="btn sm" style="width:auto" data-act="xaffst" data-id="${x.id}" data-v="active">تفعيل</button>`:""}${x.status!=="blocked"?`<button class="btn danger sm" style="width:auto" data-act="xaffst" data-id="${x.id}" data-v="blocked">إيقاف</button>`:""}</div></div>`).join(""):'<p class="muted">لسه مفيش مسوّقين.</p>'}</div>`}
+ ${x.status!=="active"?`<button class="btn sm" style="width:auto" data-act="xaffst" data-id="${x.id}" data-v="active">تفعيل</button>`:""}${x.status!=="blocked"?`<button class="btn danger sm" style="width:auto" data-act="xaffst" data-id="${x.id}" data-v="blocked">إيقاف</button>`:""}<button class="chip" style="color:var(--danger)" data-act="xaffdel" data-id="${x.id}">${a.confirm===x.id?"تأكيد الحذف":"حذف"}</button></div></div>`).join(""):'<p class="muted">لسه مفيش مسوّقين.</p>'}</div>`}
 function aSet(b){const s=S.settings;b.innerHTML=`<div class="panel"><h2>إعدادات المتجر</h2><div class="form">
  <label>رقم واتساب (بالكود الدولي)<input id="s-wa" inputmode="tel" value="${esc(s.whatsapp)}"></label>
  <label>نسبة العربون %<input id="s-dep" type="number" min="0" max="100" value="${+s.deposit||0}"></label>
@@ -410,6 +411,7 @@ document.addEventListener("click",async ev=>{
  const t=ev.target.closest("[data-act]");if(!t)return;const a=t.dataset.act,id=t.dataset.id,i=+t.dataset.i,d=+t.dataset.d;const prod=id&&S.products.find(p=>p.id===id);const ad=A();
  if(a.startsWith("af")){afDo(a,t);return}
  switch(a){
+ case"xaffdel":{if(ad.confirm!==id){ad.confirm=id;drawAdmin();return}ad.confirm=null;if(await dbDo(sb.rpc("admin_delete_affiliate",{aid:id}),"تم حذف المسوّق")){await loadAdmin();drawAdmin()}break}
  case"xaffst":if(await dbDo(sb.from("affiliates").update({status:t.dataset.v}).eq("id",id),"تم"))await loadAdmin(),drawAdmin();break;
  case"xaffrate":{const v=$("#ar-"+id).value.trim();if(await dbDo(sb.from("affiliates").update({rate:v===""?null:Math.min(90,Math.max(0,+v))}).eq("id",id),"تم الحفظ"))await loadAdmin(),drawAdmin();break}
  case"paydone":case"payrej":if(await dbDo(sb.from("payouts").update({status:a==="paydone"?"paid":"rejected",paid_at:a==="paydone"?new Date().toISOString():null}).eq("id",id),"تم"))await loadAdmin(),drawAdmin();break;
