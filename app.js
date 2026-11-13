@@ -4,9 +4,11 @@ const SB_URL="https://jnaayhdeinqjbzdjyluk.supabase.co";
 const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuYWF5aGRlaW5xamJ6ZGp5bHVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQwNzM5MjEsImV4cCI6MjEwOTY0OTkyMX0.DKM4fe4x16SugvsO1Rcbfn915QRa4Rl_4f4SXn6a-jo";
 const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,detectSessionInUrl:true,lock:async(n,t,fn)=>await fn()}});
 const sbPub=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-const DEF={whatsapp:"201019629436",deposit:50,vodafone:"",instapay:"",banner:"",globalDiscount:0,t1:50,t2:65,t3:85,customPrice:0,customNote:"",affRate:10,affMin:200,affTeamRate:5,cleanDays:90,autoClean:false};
-const T1=["القاهرة","الجيزة"],T2=["الإسكندرية","القليوبية","الشرقية","الدقهلية","الغربية","المنوفية","البحيرة","الإسماعيلية","بورسعيد","السويس","دمياط","كفر الشيخ"],T3=["الفيوم","بني سويف","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح","شمال سيناء","جنوب سيناء"];
-const GOVS=[...T1.map(n=>({n,t:1})),...T2.map(n=>({n,t:2})),...T3.map(n=>({n,t:3}))];
+const DEF={whatsapp:"201019629436",deposit:50,vodafone:"",instapay:"",banner:"",globalDiscount:0,t1:50,t2:65,t3:85,tBh:65,tBhD:50,customPrice:0,customNote:"",affRate:10,affMin:200,affTeamRate:5,cleanDays:90,autoClean:false};
+const T1=["القاهرة","الجيزة"],T2=["الإسكندرية","القليوبية","الشرقية","الدقهلية","الغربية","المنوفية","الإسماعيلية","بورسعيد","السويس","دمياط","كفر الشيخ"],T3=["الفيوم","بني سويف","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح","شمال سيناء","جنوب سيناء"];
+const BH_CITIES=["دمنهور","كفر الدوار","رشيد","إدكو","أبو حمص","الدلنجات","المحمودية","إيتاي البارود","حوش عيسى","شبراخيت","كوم حمادة","بدر","وادي النطرون","النوبارية الجديدة","أبو المطامير","الرحمانية"];
+const govFull=()=>S.gov==="البحيرة"?"البحيرة – "+S.city:S.gov;
+const GOVS=[...T1.map(n=>({n,t:1})),...T2.map(n=>({n,t:2})),{n:"البحيرة",t:"bh"},...T3.map(n=>({n,t:3}))];
 const STATUS=[["new","جديد"],["deposit","تم استلام العربون/الدفع"],["prep","جاري التجهيز"],["shipped","تم الشحن"],["done","تم التسليم"],["cancel","ملغي"],["returned","مرتجع"]];
 const SLABEL=Object.fromEntries(STATUS);
 const PAY={cod:"الدفع عند الاستلام (مع العربون)",vodafone:"فودافون كاش",instapay:"إنستاباي"};
@@ -39,7 +41,7 @@ const TPLS=[
 ];
 const tplThumbs={};
 function tplThumb(t){if(tplThumbs[t.id])return tplThumbs[t.id];const cv=document.createElement("canvas");cv.width=90;cv.height=180;const c=cv.getContext("2d");c.scale(90/W,180/H);t.f(c);return tplThumbs[t.id]=cv.toDataURL("image/jpeg",.7)}
-const S={cats:[],products:[],models:[],tpls:[],settings:{...DEF},loaded:false,error:"",cart:[],fav:[],q:"",sort:"new",coupon:null,gov:"",form:{pay:"cod"},last:null,pi:0,
+const S={cats:[],products:[],models:[],tpls:[],settings:{...DEF},loaded:false,error:"",cart:[],fav:[],q:"",sort:"new",coupon:null,gov:"",city:"",form:{pay:"cod"},last:null,pi:0,
   admin:{session:null,seen:null,isAdmin:false,checked:false,tab:"orders",orders:[],coupons:[],ed:null,cedit:null,confirm:null,filter:"all",msg:"",sent:false,mq:""},
   dz:{brand:"",model:"",text:"",font:"Reem Kufi",color:"#f4ecd6",tsize:64,imgs:null,img:null,file:null,scale:1,ox:0,oy:0,tx:300,ty:980,mode:"img",bg:"#0b4448",tpl:null,tplImg:null,busy:false,err:""}};
 try{S.cart=JSON.parse(localStorage.getItem("ghouth-cart")||"[]")}catch(e){}
@@ -79,7 +81,7 @@ const heart='<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.
 const customPrice=()=>+S.settings.customPrice||0;
 function calc(){const items=S.cart.map((c,i)=>{if(c.type==="custom")return{c,i,custom:true,unit:customPrice()};const p=S.products.find(x=>x.id===c.pid);return p?{c,i,p,unit:price(p)}:null}).filter(Boolean);
  const sub=items.reduce((a,x)=>a+x.unit*x.c.qty,0);const cd=S.coupon?Math.round(sub*S.coupon.pct/100):0;
- const g=GOVS.find(x=>x.n===S.gov);const ship=g?(+S.settings["t"+g.t]||0):0;const total=sub-cd+ship;const dep=(S.form&&S.form.pay&&S.form.pay!=="cod")?total:Math.round(total*(+S.settings.deposit||0)/100);return{items,sub,cd,ship,total,dep,g}}
+ let g=GOVS.find(x=>x.n===S.gov);if(g&&g.t==="bh"&&!S.city)g=null;const ship=g?(+S.settings[g.t==="bh"?(S.city==="دمنهور"?"tBhD":"tBh"):"t"+g.t]||0):0;const total=sub-cd+ship;const dep=(S.form&&S.form.pay&&S.form.pay!=="cod")?total:Math.round(total*(+S.settings.deposit||0)/100);return{items,sub,cd,ship,total,dep,g}}
 const cartCount=()=>S.cart.reduce((a,c)=>a+c.qty,0);
 
 /* ---------- chrome / drawer / search ---------- */
@@ -119,11 +121,9 @@ function toolbar(){return `<div class="toolbar"><select id="sort" aria-label="ا
 function loading(){return S.error?`<div class="wrap"><div class="empty"><h3>تعذّر تحميل المتجر</h3><p>${esc(S.error)}</p><button class="btn" data-act="reload">إعادة المحاولة</button></div></div>`:`<div class="wrap"><div class="empty">جاري التحميل…</div></div>`}
 function viewHome(){if(!S.loaded){$("#app").innerHTML=loading();return}
  const top=kids(null);const latest=sortList(S.products.filter(p=>p.active)).slice(0,12);
- $("#app").innerHTML=`<section class="hero"><div class="wrap"><div><h1>جرابات موبايل وهدايا مختارة بعناية</h1><p>اطلب من الموقع، حوّل العربون، وأوردرك يوصلك لحد باب البيت في كل المحافظات.</p><div class="row"><a class="btn" href="#design">صمّم جرابك</a><a class="btn ghost" href="#all">كل المنتجات</a></div></div><img class="hero-img" src="logo.jpg" alt="شعار غَوْث"></div></section>
+ $("#app").innerHTML=`<section class="hero"><div class="wrap"><div><h1>جرابات موبايل وهدايا مختارة بعناية</h1><p>اطلب من الموقع، وأوردرك يوصلك لحد باب البيت في كل المحافظات.</p><div class="row"><a class="btn" href="#design">صمّم جرابك</a><a class="btn ghost" href="#all">كل المنتجات</a></div></div><img class="hero-img" src="logo.jpg" alt="شعار غَوْث"></div></section>
  <div class="wrap"><div class="trust"><div><b>العربون يثبّت طلبك</b>نسبة بسيطة قبل التجهيز والباقي عند الاستلام</div><div><b>شحن لكل المحافظات</b>سعر واحد للطلب كله</div><div><b>3 طرق دفع</b>عند الاستلام، فودافون كاش، إنستاباي</div></div>
  ${top.length?`<div class="sec-h"><h2>الأقسام</h2></div><div class="tiles">${top.map(c=>`<a class="tile" href="#c-${c.id}"><b>${esc(c.name)}</b><span>${kids(c.id).length?kids(c.id).length+" أقسام فرعية":"تصفّح"}</span></a>`).join("")}<a class="tile" href="#design" style="border-color:var(--gold)"><b style="color:var(--accent-text)">صمّم جرابك</b><span>صورتك واسمك</span></a></div>`:""}
- <div class="sec-h"><h2>اكتب اسمك على تصميم جاهز</h2><a class="muted" href="#design">صمّم بنفسك ←</a></div>
- <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px">${TPLS.slice(0,10).map(t=>`<button class="tpl" style="flex:0 0 76px" data-act="usetpl" data-id="${t.id}" aria-label="${esc(t.n)}"><img src="${tplThumb(t)}" alt="${esc(t.n)}"></button>`).join("")}${(S.tpls||[]).filter(t=>t.active).slice(0,10).map(t=>`<button class="tpl" style="flex:0 0 76px" data-act="usetpl" data-id="u:${t.id}" data-url="${esc(t.image_url)}" aria-label="${esc(t.name||"قالب")}"><img src="${esc(t.image_url)}" alt="" loading="lazy"></button>`).join("")}</div>
  <div class="sec-h"><h2>أحدث المنتجات</h2><a class="muted" href="#all">عرض الكل ←</a></div>
  ${toolbar()}<div class="grid" id="grid">${latest.length?latest.map(cardH).join(""):'<div class="empty" style="grid-column:1/-1"><h3>المنتجات جاية قريب</h3>تابعنا على واتساب.</div>'}</div></div>`;
  const s=$("#sort");if(s)s.value=S.sort}
@@ -164,6 +164,7 @@ function viewCart(){if(!S.loaded){$("#app").innerHTML=loading();return}const o=c
  <label>الاسم<input id="f-name" autocomplete="name" value="${esc(f.name)}"></label>
  <label>رقم الموبايل<input id="f-phone" inputmode="tel" autocomplete="tel" placeholder="01xxxxxxxxx" value="${esc(f.phone)}"></label>
  <label>المحافظة<select id="f-gov"><option value="">اختر المحافظة</option>${GOVS.map(g=>`<option ${S.gov===g.n?"selected":""}>${g.n}</option>`).join("")}</select></label>
+ <label id="f-city-w" style="${S.gov==="البحيرة"?"":"display:none"}">المدينة<select id="f-city"><option value="">اختر المدينة</option>${BH_CITIES.map(c=>`<option ${S.city===c?"selected":""}>${c}</option>`).join("")}</select></label>
  <label>العنوان بالتفصيل<textarea id="f-addr" rows="2">${esc(f.addr)}</textarea></label>
  <label>ملاحظات (اختياري)<input id="f-note" value="${esc(f.note)}"></label>
  <div class="row"><input id="coupon" style="flex:1 1 140px;width:auto" placeholder="كود الخصم" value="${esc(S.coupon?S.coupon.code:"")}"><button class="btn ghost" data-act="coupon">تطبيق</button></div><div class="err" id="cerr"></div>
@@ -178,17 +179,17 @@ function payHow(){const s=S.settings,m=S.form.pay;const num=m==="vodafone"?s.vod
 function drawSum(){const o=calc();const s=$("#sum");if(!s)return;
  s.innerHTML=`<div class="sum"><div><span>المنتجات</span><span>${fmt(o.sub)}</span></div>${o.cd?`<div><span>خصم الكود (${esc(S.coupon.code)})</span><span>−${fmt(o.cd)}</span></div>`:""}<div><span>الشحن (سعر واحد للطلب)</span><span>${o.g?fmt(o.ship):"يتحدد بالمحافظة"}</span></div><div class="tot"><span>الإجمالي</span><span>${fmt(o.total)}</span></div></div>`;
  $("#depo").innerHTML=S.form.pay==="cod"?`<div class="note"><b>العربون مطلوب قبل ما الطلب يتأكد:</b> ${+S.settings.deposit||0}% من الإجمالي = <b>${fmt(o.dep)}</b>. الأوردر بيتجهّز بعد وصول العربون.<br>${payHow()}<br>المتبقي: ${fmt(o.total-o.dep)}.</div>`:`<div class="note"><b>المطلوب تحويله قبل ما الطلب يتأكد:</b> المبلغ كامل = <b>${fmt(o.total)}</b>. الأوردر بيتجهّز بعد وصول التحويل.<br>${payHow()}</div>`}
-function readForm(){const g=id=>($("#"+id)||{}).value;if(!$("#f-name"))return;Object.assign(S.form,{name:g("f-name"),phone:g("f-phone"),addr:g("f-addr"),note:g("f-note")});S.gov=g("f-gov")}
+function readForm(){const g=id=>($("#"+id)||{}).value;if(!$("#f-name"))return;Object.assign(S.form,{name:g("f-name"),phone:g("f-phone"),addr:g("f-addr"),note:g("f-note")});S.gov=g("f-gov");if(S.gov!=="البحيرة")S.city="";else S.city=g("f-city")||""}
 async function place(){readForm();const f=S.form,e=$("#err"),btn=$("#placeBtn");const ph0=dg(f.phone||"").replace(/[\s+\-]/g,"").replace(/^20/,"0");
  if(!(f.name||"").trim())return e.textContent="اكتب اسمك من فضلك.";
  if(!/^01[0125]\d{8}$/.test(ph0))return e.textContent="رقم الموبايل لازم يكون 11 رقم ويبدأ بـ 01.";
- if(!S.gov)return e.textContent="اختر المحافظة.";if(!(f.addr||"").trim())return e.textContent="اكتب العنوان بالتفصيل.";
+ if(!S.gov)return e.textContent="اختر المحافظة.";if(S.gov==="البحيرة"&&!S.city)return e.textContent="اختر المدينة.";if(!(f.addr||"").trim())return e.textContent="اكتب العنوان بالتفصيل.";
  e.textContent="";btn.disabled=true;btn.textContent="جاري إرسال الطلب…";
  const items=S.cart.map(c=>c.type==="custom"?{type:"custom",brand:c.brand,model:c.model,text:c.text,font:c.font,preview:c.preview,full:c.full||"",original:c.original,qty:c.qty}:{type:"product",pid:c.pid,opt:c.opt||"",qty:c.qty});
- const {data,error}=await sbPub.rpc("place_order",{p:{name:f.name.trim(),phone:ph0,gov:S.gov,addr:f.addr.trim(),note:(f.note||"").trim(),pay:f.pay,coupon:S.coupon?S.coupon.code:"",ref:getRef(),items}});
+ const {data,error}=await sbPub.rpc("place_order",{p:{name:f.name.trim(),phone:ph0,gov:govFull(),addr:f.addr.trim(),note:(f.note||"").trim(),pay:f.pay,coupon:S.coupon?S.coupon.code:"",ref:getRef(),items}});
  btn.disabled=false;btn.textContent="تأكيد الطلب";
  if(error){const m=error.message||"";e.textContent=m.includes("out_of_stock")?"الكمية المتاحة من "+m.split("out_of_stock:")[1]+" مش كفاية. قلّل الكمية أو شيله من السلة.":m.includes("rate_limited")?"طلبات كتير في وقت قصير. جرّب بعد شوية أو كلمنا على واتساب.":m.includes("product_missing")?"فيه منتج في السلة مبقاش متاح. احذفه وكمّل.":m.includes("invalid_customer")?"راجع الاسم والموبايل (11 رقم) والعنوان.":"تعذّر إرسال الطلب. جرّب تاني أو كلمنا على واتساب. ["+m.slice(0,120)+"]";if(m.includes("out_of_stock")||m.includes("product_missing"))loadData();return}
- S.last=Object.assign({},data,{name:f.name.trim(),phone:ph0,gov:S.gov,addr:f.addr.trim(),note:(f.note||"").trim(),pay:f.pay});S.cart=[];S.coupon=null;save("ghouth-cart",S.cart);chrome();loadData();location.hash="done"}
+ S.last=Object.assign({},data,{name:f.name.trim(),phone:ph0,gov:govFull(),addr:f.addr.trim(),note:(f.note||"").trim(),pay:f.pay});S.cart=[];S.coupon=null;save("ghouth-cart",S.cart);chrome();loadData();location.hash="done"}
 function viewDone(){const o=S.last;if(!o){location.hash="home";return}
  const lines=o.items.map(i=>"- "+(i.type==="custom"?"تصميم خاص: "+i.brand+" "+i.model+(i.text?" | الاسم: "+i.text:"")+(i.font?" | الخط: "+i.font:"")+(i.preview?"\nمعاينة: "+i.preview:""):i.name+(i.opt?" ("+i.opt+")":""))+" × "+i.qty+" = "+fmt(i.price*i.qty));
  const msg=["طلب جديد من متجر غَوْث","رقم الطلب: "+o.id,"الاسم: "+o.name,"الموبايل: "+o.phone,"المحافظة: "+o.gov,"العنوان: "+o.addr,o.note?"ملاحظات: "+o.note:null,"","المنتجات:",...lines,"",o.coupon?"كود الخصم: "+o.coupon+" (−"+fmt(o.cd)+")":null,"الشحن: "+fmt(o.ship),"الإجمالي: "+fmt(o.total),(o.pay==="cod"?"العربون المطلوب: ":"المطلوب تحويله: ")+fmt(o.dep),"طريقة الدفع: "+PAY[o.pay]].filter(x=>x!==null).join("\n");
@@ -368,7 +369,7 @@ function logLine(l){const t=new Date(l.at).toLocaleString("ar-EG",{dateStyle:"sh
  if(l.kind==="create")m="تم إنشاء الطلب ("+fmt(+l.new_v)+")";else if(l.kind==="status")m="الحالة: "+(ST[l.old_v]||l.old_v)+" ← "+(ST[l.new_v]||l.new_v);else if(l.kind==="paid")m=l.new_v==="true"?"تم تأكيد وصول الدفع":"تم إلغاء تأكيد الدفع";else if(l.kind==="receipt")m="اترفع إيصال تحويل"+(l.new_v?" من "+l.new_v:"");else if(l.kind==="edit")m="تعديل الطلب (الإجمالي "+fmt(+l.old_v)+" ← "+fmt(+l.new_v)+")";else m=l.kind;
  return esc(t)+" · "+esc(m)+" · <span class='muted'>"+esc(l.actor)+"</span>"}
 function readOE(){if(!$("#eo-name"))return;const f=A().oform||(A().oform={});f.name=$("#eo-name").value;f.phone=$("#eo-ph").value;f.gov=$("#eo-gov").value;f.addr=$("#eo-addr").value;f.note=$("#eo-note").value;f.qty=f.qty||{};document.querySelectorAll("[data-eq]").forEach(i=>{f.qty[i.dataset.eq]=i.value})}
-function editCard(o){const a=A(),f=a.oform;const gv=GOVS.map(g=>`<option ${f.gov===g.n?"selected":""}>${esc(g.n)}</option>`).join("");
+function editCard(o){const a=A(),f=a.oform;const gv=GOVS.flatMap(g=>g.t==="bh"?BH_CITIES.map(c=>"البحيرة – "+c):[g.n]).map(n=>`<option ${f.gov===n?"selected":""}>${esc(n)}</option>`).join("");
  return `<div class="ord" style="border-color:var(--gold)"><header><span class="id">تعديل ${esc(o.id)}</span></header><div class="form">
  <label>الاسم<input id="eo-name" value="${esc(f.name)}"></label><label>الموبايل<input id="eo-ph" inputmode="tel" value="${esc(f.phone)}"></label>
  <label>المحافظة<select id="eo-gov">${gv}</select></label><label>العنوان<input id="eo-addr" value="${esc(f.addr)}"></label><label>ملاحظات العميل<input id="eo-note" value="${esc(f.note)}"></label>
@@ -461,6 +462,7 @@ function aSet(b){const s=S.settings;b.innerHTML=`<div class="panel"><h2>إعدا
  <label>شريط الإعلان أعلى الموقع<input id="s-bn" value="${esc(s.banner)}"></label>
  <div class="muted">سعر الشحن للطلب الكامل حسب المحافظة (ج.م)</div>
  <div class="two"><label>القاهرة والجيزة<input id="s-t1" type="number" min="0" value="${+s.t1||0}"></label><label>الإسكندرية والدلتا والقناة<input id="s-t2" type="number" min="0" value="${+s.t2||0}"></label></div>
+ <div class="two"><label>البحيرة (باقي المدن)<input id="s-tbh" type="number" min="0" value="${+s.tBh||0}"></label><label>البحيرة – مدينة دمنهور<input id="s-tbhd" type="number" min="0" value="${+s.tBhD||0}"></label></div>
  <label>الصعيد والمحافظات الحدودية<input id="s-t3" type="number" min="0" value="${+s.t3||0}"></label><button class="btn" data-act="saveset">حفظ الإعدادات</button></div></div>
  <div class="panel" style="margin-top:14px"><h2>رابط الموقع وQR</h2><p class="muted" style="margin-top:0">اطبع الـ QR على الكروت وتغليف الطلبات.</p><input readonly value="${esc(base())}" onclick="this.select()" style="direction:ltr"><div class="mini" style="margin-top:8px"><button class="chip" data-act="xqrsite">QR الموقع</button></div></div>
  <div class="panel" style="margin-top:14px"><h2>الأمان: التحقق بخطوتين</h2>${mfaPanel()}</div>
@@ -597,11 +599,11 @@ document.addEventListener("click",async ev=>{
  case"togc":{const c=ad.coupons.find(x=>x.id===id);if(await dbDo(sb.from("coupons").update({active:!c.active}).eq("id",id)))await loadAdmin();drawAdmin();break}
  case"addm":{const b=$("#m-brand").value.trim(),m=$("#m-model").value.trim();if(!b||!m)return $("#merr").textContent="اكتب الماركة والموديل.";if(await dbDo(sb.from("phone_models").insert({brand:b,model:m}),"تمت الإضافة")){const r=await sb.from("phone_models").select("*").order("brand").order("model").limit(2000);S.models=r.data||S.models;drawAdmin()}break}
  case"delm":if(await dbDo(sb.from("phone_models").delete().eq("id",+id))){S.models=S.models.filter(m=>m.id!==+id);drawAdmin()}break;
- case"saveset":{const g=k=>$("#"+k).value;saveSettings({whatsapp:g("s-wa").replace(/\D/g,"")||DEF.whatsapp,deposit:Math.min(100,Math.max(0,+g("s-dep")||0)),vodafone:g("s-vf").trim(),instapay:g("s-ip").trim(),banner:g("s-bn").trim(),customPrice:+g("s-cp")||0,affRate:Math.min(90,Math.max(0,+g("s-ar")||0)),affMin:Math.max(0,+g("s-am")||0),affTeamRate:Math.min(50,Math.max(0,+g("s-atr")||0)),affTiers:parseTiers(g("s-tr")),policy:g("s-pol").trim()===POLICY_DEF?"":g("s-pol").trim(),affTiersSince:tiersSince(g("s-tr")),t1:+g("s-t1")||0,t2:+g("s-t2")||0,t3:+g("s-t3")||0});break}
+ case"saveset":{const g=k=>$("#"+k).value;saveSettings({whatsapp:g("s-wa").replace(/\D/g,"")||DEF.whatsapp,deposit:Math.min(100,Math.max(0,+g("s-dep")||0)),vodafone:g("s-vf").trim(),instapay:g("s-ip").trim(),banner:g("s-bn").trim(),customPrice:+g("s-cp")||0,affRate:Math.min(90,Math.max(0,+g("s-ar")||0)),affMin:Math.max(0,+g("s-am")||0),affTeamRate:Math.min(50,Math.max(0,+g("s-atr")||0)),affTiers:parseTiers(g("s-tr")),policy:g("s-pol").trim()===POLICY_DEF?"":g("s-pol").trim(),affTiersSince:tiersSince(g("s-tr")),t1:+g("s-t1")||0,t2:+g("s-t2")||0,t3:+g("s-t3")||0,tBh:+g("s-tbh")||0,tBhD:+g("s-tbhd")||0});break}
  }});
 document.addEventListener("input",ev=>{const t=ev.target;
  if(t.id==="sq")drawSearch();
- else if(t.id&&t.id.startsWith("f-")){readForm();if(t.id==="f-gov")drawSum()}
+ else if(t.id&&t.id.startsWith("f-")){readForm();if(t.id==="f-gov"||t.id==="f-city")drawSum()}
  else if(t.id==="m-q"){A().mq=t.value;const pos=t.selectionStart;aModels($("#ab"));const n=$("#m-q");n.focus();n.setSelectionRange(pos,pos)}
  else if(t.id==="dz-text"){S.dz.text=t.value;drawCase()}
  else if(t.id==="dz-scale"){S.dz.scale=+t.value;drawCase()}
@@ -610,7 +612,7 @@ document.addEventListener("input",ev=>{const t=ev.target;
  else if(t.id==="dz-size"){S.dz.tsize=+t.value;drawCase()}});
 document.addEventListener("change",async ev=>{const t=ev.target;
  if(t.id==="sort"){S.sort=t.value;route2()}
- else if(t.id==="f-gov"){readForm();drawSum()}
+ else if(t.id==="f-gov"||t.id==="f-city"){readForm();const w=$("#f-city-w");if(w)w.style.display=S.gov==="البحيرة"?"":"none";drawSum()}
  else if(t.name==="pay"){S.form.pay=t.value;drawSum()}
  else if(t.name==="dzm"){S.dz.mode=t.value}
  else if(t.id==="dz-file"&&t.files.length){try{await loadDzImage(t.files[0])}catch(e){S.dz.err="الصورة دي مش مدعومة. جرّب JPG أو PNG.";$("#dz-err").textContent=S.dz.err}}
