@@ -43,7 +43,7 @@ const tplThumbs={};
 function tplThumb(t){if(tplThumbs[t.id])return tplThumbs[t.id];const cv=document.createElement("canvas");cv.width=90;cv.height=180;const c=cv.getContext("2d");c.scale(90/W,180/H);t.f(c);return tplThumbs[t.id]=cv.toDataURL("image/jpeg",.7)}
 const S={cats:[],products:[],models:[],tpls:[],settings:{...DEF},loaded:false,error:"",cart:[],fav:[],q:"",sort:"new",coupon:null,gov:"",city:"",form:{pay:"cod"},last:null,pi:0,
   admin:{session:null,seen:null,isAdmin:false,checked:false,tab:"orders",orders:[],coupons:[],ed:null,cedit:null,confirm:null,filter:"all",msg:"",sent:false,mq:""},
-  dz:{brand:"",model:"",text:"",font:"Reem Kufi",color:"#f4ecd6",tsize:64,imgs:null,img:null,file:null,scale:1,ox:0,oy:0,tx:300,ty:980,mode:"img",bg:"#0b4448",tpl:null,tplImg:null,busy:false,err:""}};
+  dz:{brand:"",model:"",text:"",font:"Reem Kufi",color:"#f4ecd6",tsize:64,imgs:null,img:null,file:null,scale:1,ox:0,oy:0,tx:300,ty:600,mode:"txt",bg:"#0b4448",tpl:null,tplImg:null,busy:false,err:""}};
 try{S.cart=JSON.parse(localStorage.getItem("ghouth-cart")||"[]")}catch(e){}
 try{S.fav=JSON.parse(localStorage.getItem("ghouth-fav")||"[]")}catch(e){}
 const $=s=>document.querySelector(s);
@@ -205,20 +205,19 @@ function viewTrack(){$("#app").innerHTML=`<div class="wrap" style="max-width:520
 
 /* ---------- design studio ---------- */
 const W=600,H=1200;
+const dzHint=()=>S.dz.mode==="img"?"اسحب لتحريك الصورة، وبصباعين للتكبير والتصغير":"اسحب لتحريك الاسم، وبصباعين للتكبير والتصغير";
 function viewDesign(){const d=S.dz;loadDesignFonts();const tl=S.tpls.filter(t=>t.active);
  $("#app").innerHTML=`<div class="wrap"><h1 style="font-size:26px;padding-top:20px">صمّم جرابك</h1><p class="muted" style="margin:4px 0 0">ارفع صورتك، اكتب اسمك، واختار الخط. السعر: <b style="color:var(--accent-text)">${customPrice()?fmt(customPrice()):"يتحدد بعد مراجعة التصميم"}</b></p>
- <div class="studio"><div class="stage"><canvas id="cv" width="${W}" height="${H}" aria-label="معاينة الجراب"></canvas><span class="muted" style="font-size:13px">اسحب بإصبعك لتحريك ${d.mode==="img"?"الصورة":"الاسم"}</span></div>
+ <div class="studio"><div class="stage"><canvas id="cv" width="${W}" height="${H}" aria-label="معاينة الجراب"></canvas><span class="muted" id="dz-hint" style="font-size:12px;text-align:center">${dzHint()}</span><div class="tpls dz-tpls" aria-label="قوالب جاهزة"><button class="tpl ${!d.tpl?"on":""}" data-act="tpl" data-id="none" style="display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)">بدون</button>${TPLS.map(t=>`<button class="tpl ${d.tpl===t.id?"on":""}" data-act="tpl" data-id="${t.id}" aria-label="${esc(t.n)}"><img src="${tplThumb(t)}" alt="${esc(t.n)}"></button>`).join("")}${tl.map(t=>`<button class="tpl ${d.tpl==="u:"+t.id?"on":""}" data-act="tpl" data-id="u:${t.id}" data-url="${esc(t.image_url)}" aria-label="${esc(t.name||"قالب")}"><img src="${esc(t.image_url)}" alt="" loading="lazy"></button>`).join("")}</div><div class="err" id="dz-err">${esc(d.err)}</div><button class="btn" id="dz-add" data-act="dzadd" ${d.busy?"disabled":""}>${d.busy?"جاري رفع التصميم…":"أضف التصميم للسلة"}</button></div>
  <div class="form">
  <div class="step"><h3>١. نوع التليفون</h3>${phoneSel("dz",d.brand,d.model)}</div>
- <div class="step"><h3>٢. اختار قالب جاهز (اختياري)</h3><div class="tpls"><button class="tpl ${!d.tpl?"on":""}" data-act="tpl" data-id="none" style="display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)">بدون</button>${TPLS.map(t=>`<button class="tpl ${d.tpl===t.id?"on":""}" data-act="tpl" data-id="${t.id}" aria-label="${esc(t.n)}"><img src="${tplThumb(t)}" alt="${esc(t.n)}"></button>`).join("")}${tl.map(t=>`<button class="tpl ${d.tpl==="u:"+t.id?"on":""}" data-act="tpl" data-id="u:${t.id}" data-url="${esc(t.image_url)}" aria-label="${esc(t.name||"قالب")}"><img src="${esc(t.image_url)}" alt="" loading="lazy"></button>`).join("")}</div></div>
- <div class="step"><h3>٣. صورتك (اختياري)</h3><input id="dz-file" type="file" accept="image/*"><div class="row"><label class="row muted">تكبير<input id="dz-scale" type="range" min="0.3" max="3" step="0.02" value="${d.scale}" style="width:160px"></label><label class="row muted">لون الخلفية<input id="dz-bg" type="color" value="${d.bg}" style="width:56px"></label></div></div>
- <div class="step"><h3>٤. الاسم والخط</h3><input id="dz-text" placeholder="اكتب الاسم (عربي أو إنجليزي)" maxlength="30" value="${esc(d.text)}">
+ <div class="step"><h3>٢. صورتك (اختياري)</h3><input id="dz-file" type="file" accept="image/*"><div class="row"><label class="row muted">تكبير<input id="dz-scale" type="range" min="0.3" max="4" step="0.02" value="${d.scale}" style="width:160px"></label><label class="row muted">لون الخلفية<input id="dz-bg" type="color" value="${d.bg}" style="width:56px"></label></div></div>
+ <div class="step"><h3>٣. الاسم والخط</h3><input id="dz-text" placeholder="اكتب الاسم (عربي أو إنجليزي)" maxlength="30" value="${esc(d.text)}">
  <div class="muted">خطوط عربية</div><div class="fonts">${FONTS_AR.map(([f,l])=>`<button class="fbtn ${d.font===f?"on":""}" style="font-family:'${f}'" data-act="font" data-f="${esc(f)}">${esc(l)}</button>`).join("")}</div>
  <div class="muted">خطوط إنجليزية</div><div class="fonts">${FONTS_EN.map(([f,l])=>`<button class="fbtn ${d.font===f?"on":""}" style="font-family:'${f}'" data-act="font" data-f="${esc(f)}">${esc(l)}</button>`).join("")}</div>
- <div class="row"><label class="row muted">اللون<input id="dz-color" type="color" value="${d.color}" style="width:56px"></label><label class="row muted">الحجم<input id="dz-size" type="range" min="28" max="140" value="${d.tsize}" style="width:140px"></label></div>
+ <div class="row"><label class="row muted">اللون<input id="dz-color" type="color" value="${d.color}" style="width:56px"></label><label class="row muted">الحجم<input id="dz-size" type="range" min="20" max="220" value="${d.tsize}" style="width:140px"></label></div>
  <div class="row"><span class="muted">اسحب:</span><label class="radio"><input type="radio" name="dzm" value="img" ${d.mode==="img"?"checked":""}>الصورة</label><label class="radio"><input type="radio" name="dzm" value="txt" ${d.mode==="txt"?"checked":""}>الاسم</label></div></div>
- <div class="err" id="dz-err">${esc(d.err)}</div>
- <button class="btn" id="dz-add" data-act="dzadd" ${d.busy?"disabled":""}>${d.busy?"جاري رفع التصميم…":"أضف التصميم للسلة"}</button></div></div></div>`;
+ </div></div></div>`;
  drawCase()}
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
 function paintCase(c,hideGuides){const d=S.dz;c.clearRect(0,0,W,H);c.save();if(hideGuides){c.beginPath();c.rect(0,0,W,H);c.clip()}else{rr(c,10,10,W-20,H-20,90);c.clip()}c.fillStyle=d.bg;c.fillRect(0,0,W,H);if(d.tplImg){const iw=d.tplImg.width,ih=d.tplImg.height,k=Math.max(W/iw,H/ih);c.drawImage(d.tplImg,(W-iw*k)/2,(H-ih*k)/2,iw*k,ih*k)}else if(d.tpl){const t=TPLS.find(x=>x.id===d.tpl);if(t)t.f(c)}
@@ -230,10 +229,17 @@ function paintCase(c,hideGuides){const d=S.dz;c.clearRect(0,0,W,H);c.save();if(h
  [[110,110],[190,110],[150,190]].forEach(([x,y])=>{c.fillStyle="#1d1d1d";c.beginPath();c.arc(x,y,32,0,7);c.fill();c.strokeStyle="#555";c.lineWidth=3;c.stroke();c.fillStyle="#08080a";c.beginPath();c.arc(x,y,17,0,7);c.fill()});
  c.strokeStyle="#c9a94f";c.lineWidth=5;rr(c,10,10,W-20,H-20,90);c.stroke()}
 function drawCase(){const cv=$("#cv");if(!cv)return;paintCase(cv.getContext("2d"))}
-function bindCanvas(){const cv=$("#cv");if(!cv)return;let last=null;
- cv.onpointerdown=e=>{last={x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId);cv.style.cursor="grabbing"};
- cv.onpointermove=e=>{if(!last)return;const k=W/cv.getBoundingClientRect().width;const dx=(e.clientX-last.x)*k,dy=(e.clientY-last.y)*k;last={x:e.clientX,y:e.clientY};const d=S.dz;if(d.mode==="img"){d.ox+=dx;d.oy+=dy}else{d.tx+=dx;d.ty+=dy}drawCase()};
- cv.onpointerup=cv.onpointercancel=()=>{last=null;cv.style.cursor="grab"}}
+let cvBound=false;
+function bindCanvas(){if(cvBound)return;cvBound=true;const P=new Map();let pin=null,last=null;
+ const cvEl=()=>$("#cv");const rate=()=>W/cvEl().getBoundingClientRect().width;
+ const dist=()=>{const [a,b]=[...P.values()];return Math.hypot(a.x-b.x,a.y-b.y)||1};
+ document.addEventListener("pointerdown",e=>{if(e.target.id!=="cv")return;try{e.target.setPointerCapture(e.pointerId)}catch(x){}P.set(e.pointerId,{x:e.clientX,y:e.clientY});e.target.style.cursor="grabbing";
+  if(P.size===2){const d=S.dz;pin={d:dist(),v:d.mode==="img"?d.scale:d.tsize};last=null}else if(P.size===1)last={x:e.clientX,y:e.clientY}});
+ document.addEventListener("pointermove",e=>{if(!P.has(e.pointerId)||!cvEl())return;P.set(e.pointerId,{x:e.clientX,y:e.clientY});const d=S.dz;
+  if(P.size>=2&&pin){const r=dist()/pin.d;if(d.mode==="img"){d.scale=Math.min(4,Math.max(.3,pin.v*r));const sc=$("#dz-scale");if(sc)sc.value=d.scale}else{d.tsize=Math.round(Math.min(220,Math.max(20,pin.v*r)));const sz=$("#dz-size");if(sz)sz.value=d.tsize}drawCase();return}
+  if(!last)return;const k=rate(),dx=(e.clientX-last.x)*k,dy=(e.clientY-last.y)*k;last={x:e.clientX,y:e.clientY};if(d.mode==="img"){d.ox+=dx;d.oy+=dy}else{d.tx+=dx;d.ty+=dy}drawCase()});
+ const up=e=>{if(!P.has(e.pointerId))return;P.delete(e.pointerId);if(P.size<2)pin=null;if(P.size===1){const r=[...P.values()][0];last={x:r.x,y:r.y}}else if(P.size===0){last=null;const c=cvEl();if(c)c.style.cursor="grab"}};
+ document.addEventListener("pointerup",up);document.addEventListener("pointercancel",up)}
 async function shrinkFile(file,max,type,q){const bm=await createImageBitmap(file);const k=Math.min(1,max/Math.max(bm.width,bm.height));const c=document.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);return new Promise(r=>c.toBlob(r,type||"image/jpeg",q||.86))}
 async function loadDzImage(file){const bm=await createImageBitmap(file);const k=Math.min(1,1800/Math.max(bm.width,bm.height));const c=document.createElement("canvas");c.width=Math.round(bm.width*k);c.height=Math.round(bm.height*k);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);S.dz.img=c;S.dz.file=file;S.dz.scale=1;S.dz.ox=0;S.dz.oy=0;const sc=$("#dz-scale");if(sc)sc.value=1;drawCase()}
 async function upload(bucket,blob,ext){const c=(bucket==="designs"||bucket==="receipts")?sbPub:sb;const path=rid()+"."+ext;const {error}=await c.storage.from(bucket).upload(path,blob,{contentType:blob.type,upsert:false});if(error)throw error;return c.storage.from(bucket).getPublicUrl(path).data.publicUrl}
@@ -624,7 +630,7 @@ document.addEventListener("change",async ev=>{const t=ev.target;
  if(t.id==="sort"){S.sort=t.value;route2()}
  else if(t.id==="f-gov"||t.id==="f-city"){readForm();const w=$("#f-city-w");if(w)w.style.display=S.gov==="البحيرة"?"":"none";drawSum()}
  else if(t.name==="pay"){S.form.pay=t.value;drawSum()}
- else if(t.name==="dzm"){S.dz.mode=t.value}
+ else if(t.name==="dzm"){S.dz.mode=t.value;const h=$("#dz-hint");if(h)h.textContent=dzHint()}
  else if(t.id==="dz-file"&&t.files.length){try{await loadDzImage(t.files[0])}catch(e){S.dz.err="الصورة دي مش مدعومة. جرّب JPG أو PNG.";$("#dz-err").textContent=S.dz.err}}
  else if(t.id==="dz-brand"||t.id==="pp-brand"){const pre=t.id.split("-")[0];const m=$("#"+pre+"-model");m.innerHTML='<option value="">اختر الموديل</option>'+modelsOf(t.value).map(x=>`<option>${esc(x)}</option>`).join("");if(pre==="dz"){S.dz.brand=t.value;S.dz.model=""}}
  else if(t.id==="dz-model"){S.dz.model=t.value}
