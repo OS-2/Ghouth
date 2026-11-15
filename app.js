@@ -81,7 +81,7 @@ const heart='<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.
 const customPrice=()=>+S.settings.customPrice||0;
 function calc(){const items=S.cart.map((c,i)=>{if(c.type==="custom")return{c,i,custom:true,unit:customPrice()};const p=S.products.find(x=>x.id===c.pid);return p?{c,i,p,unit:price(p)}:null}).filter(Boolean);
  const sub=items.reduce((a,x)=>a+x.unit*x.c.qty,0);const cd=S.coupon?Math.round(sub*S.coupon.pct/100):0;
- let g=GOVS.find(x=>x.n===S.gov);if(g&&g.t==="bh"&&!S.city)g=null;const ship=g?(+S.settings[g.t==="bh"?(S.city==="دمنهور"?"tBhD":"tBh"):"t"+g.t]||0):0;const total=sub-cd+ship;const dep=(S.form&&S.form.pay&&S.form.pay!=="cod")?total:Math.round(total*(+S.settings.deposit||0)/100);return{items,sub,cd,ship,total,dep,g}}
+ let g=GOVS.find(x=>x.n===S.gov);if(g&&g.t==="bh"&&!S.city)g=null;const ship=g?(+S.settings[g.t==="bh"?(S.city==="دمنهور"?"tBhD":"tBh"):"t"+g.t]||0):0;const total=sub-cd+ship;const dep=(S.form&&S.form.pay&&S.form.pay!=="cod")?total:Math.round(Math.max(sub-cd,0)*(+S.settings.deposit||0)/100);return{items,sub,cd,ship,total,dep,g}}
 const cartCount=()=>S.cart.reduce((a,c)=>a+c.qty,0);
 
 /* ---------- chrome / drawer / search ---------- */
@@ -178,7 +178,7 @@ function payHow(){const s=S.settings,m=S.form.pay;const num=m==="vodafone"?s.vod
  return (num?"حوّل على: <b class='sel'>"+esc(num)+"</b>. ":"هنبعتلك رقم التحويل على واتساب. ")+"حوّل المبلغ كامل."}
 function drawSum(){const o=calc();const s=$("#sum");if(!s)return;
  s.innerHTML=`<div class="sum"><div><span>المنتجات</span><span>${fmt(o.sub)}</span></div>${o.cd?`<div><span>خصم الكود (${esc(S.coupon.code)})</span><span>−${fmt(o.cd)}</span></div>`:""}<div><span>الشحن (سعر واحد للطلب)</span><span>${o.g?fmt(o.ship):"يتحدد بالمحافظة"}</span></div><div class="tot"><span>الإجمالي</span><span>${fmt(o.total)}</span></div></div>`;
- $("#depo").innerHTML=S.form.pay==="cod"?`<div class="note"><b>العربون مطلوب قبل ما الطلب يتأكد:</b> ${+S.settings.deposit||0}% من الإجمالي = <b>${fmt(o.dep)}</b>. الأوردر بيتجهّز بعد وصول العربون.<br>${payHow()}<br>المتبقي: ${fmt(o.total-o.dep)}.</div>`:`<div class="note"><b>المطلوب تحويله قبل ما الطلب يتأكد:</b> المبلغ كامل = <b>${fmt(o.total)}</b>. الأوردر بيتجهّز بعد وصول التحويل.<br>${payHow()}</div>`}
+ $("#depo").innerHTML=S.form.pay==="cod"?`<div class="note"><b>العربون مطلوب قبل ما الطلب يتأكد:</b> ${+S.settings.deposit||0}% من سعر المنتجات (من غير الشحن) = <b>${fmt(o.dep)}</b>. الأوردر بيتجهّز بعد وصول العربون.<br>${payHow()}<br>المتبقي: ${fmt(o.total-o.dep)}.</div>`:`<div class="note"><b>المطلوب تحويله قبل ما الطلب يتأكد:</b> المبلغ كامل = <b>${fmt(o.total)}</b>. الأوردر بيتجهّز بعد وصول التحويل.<br>${payHow()}</div>`}
 function readForm(){const g=id=>($("#"+id)||{}).value;if(!$("#f-name"))return;Object.assign(S.form,{name:g("f-name"),phone:g("f-phone"),addr:g("f-addr"),note:g("f-note")});S.gov=g("f-gov");if(S.gov!=="البحيرة")S.city="";else S.city=g("f-city")||""}
 async function place(){readForm();const f=S.form,e=$("#err"),btn=$("#placeBtn");const ph0=dg(f.phone||"").replace(/[\s+\-]/g,"").replace(/^20/,"0");
  if(!(f.name||"").trim())return e.textContent="اكتب اسمك من فضلك.";
