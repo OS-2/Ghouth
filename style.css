@@ -216,3 +216,11 @@ button.tile{font:inherit;color:inherit;text-align:inherit;cursor:pointer}
 .sw.off::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,transparent 45%,#d33 45%,#d33 55%,transparent 55%)}
 .dz-sizes{display:flex;flex-wrap:wrap;gap:6px}
 .dz-sizes .fbtn{min-height:44px;min-width:52px;font-size:16px}
+
+/* clothes v2 */
+.stage canvas.clv{border-radius:14px;max-width:340px;background:transparent;transform-style:preserve-3d;will-change:transform}
+.vtabs{display:flex;gap:6px;width:100%;justify-content:center;flex-wrap:wrap}
+.vtab{flex:1 1 0;min-width:0;padding:7px 4px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);font:inherit;font-size:13px;cursor:pointer;position:relative}
+.vtab.on{background:var(--gold);color:var(--gold-fg);border-color:var(--gold);font-weight:600}
+.vtab.has::after{content:"";position:absolute;top:4px;inset-inline-end:5px;width:6px;height:6px;border-radius:50%;background:#2ecc71}
+@media (max-width:760px){.stage canvas.clv{max-width:none}.vtab{font-size:12px;padding:6px 2px}}
