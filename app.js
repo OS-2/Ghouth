@@ -286,7 +286,7 @@ const clViews=k=>k==="kufiya"?[CL_VIEWS[0]]:CL_VIEWS;
 const CL_DIM={tshirt:{front:[774,824],back:[774,826],sleeveR:[362,630],sleeveL:[366,630]},hoodie:{front:[673,769],back:[676,772],sleeveR:[204,740],sleeveL:[207,732]}};
 const CL_AR={tshirt:{front:[.27,.2,.46,.4],back:[.25,.1,.5,.55],sleeveR:[.15,.25,.7,.4],sleeveL:[.15,.25,.7,.4]},hoodie:{front:[.3,.27,.4,.2],back:[.27,.2,.46,.45],sleeveR:[.2,.2,.6,.35],sleeveL:[.2,.2,.6,.35]}};
 const MK={},BC={};
-function mkImg(n){if(MK[n])return MK[n];const im=new Image(),o={im,ok:false};im.onload=()=>{o.ok=true;if($("#cv")&&isCl())drawCase()};im.src="mockups/"+n+".png";MK[n]=o;return o}
+function mkImg(n){if(MK[n])return MK[n];const im=new Image(),o={im,ok:false};im.onload=()=>{o.ok=true;if($("#cv")&&isCl())drawCase()};im.onerror=()=>{o.err=true;if($("#cv")&&isCl())drawCase()};im.src=(window.MKD&&window.MKD[n])||"mockups/"+n+".png";MK[n]=o;return o}
 function clBox(k,v){if(k==="kufiya")return{x:CL_PA.kufiya.x,y:CL_PA.kufiya.y,w:CL_PA.kufiya.w,h:CL_PA.kufiya.h};const [w,h]=CL_DIM[k][v];const s=Math.min((CW-40)/w,(CH-40)/h,1.1);return{x:(CW-w*s)/2,y:(CH-h*s)/2,w:w*s,h:h*s}}
 function clArea(k,v){const b=clBox(k,v);if(k==="kufiya")return b;const a=CL_AR[k][v];return{x:b.x+b.w*a[0],y:b.y+b.h*a[1],w:b.w*a[2],h:b.h*a[3]}}
 function clPreload(k){if(k==="kufiya")return;clViews(k).forEach(([v])=>{mkImg(k+"_"+v+"_s");mkImg(k+"_"+v+"_h")})}
@@ -308,7 +308,7 @@ function clDesignFree(c,a,maxW){const d=S.dz;
  if(d.text){c.fillStyle=d.color;c.textAlign="center";c.textBaseline="middle";c.font=`${d.tsize}px '${d.font}', sans-serif`;c.fillText(d.text,d.tx,d.ty,maxW)}}
 function paintCloth(c,mode){const d=S.dz,k=d.kind;if(k==="kufiya")return paintKufiya(c,mode);
  const v=d.view||"front",hex=clHex(d.ccol),b=clBox(k,v),a=clArea(k,v);c.clearRect(0,0,CW,CH);
- const base=clBase(k,v,hex,b);if(!base){c.fillStyle="rgba(128,128,128,.8)";c.font="18px sans-serif";c.textAlign="center";c.fillText("جاري تحميل الموكاب…",CW/2,CH/2);return}
+ const base=clBase(k,v,hex,b);if(!base){const bad=mkImg(k+"_"+v+"_s").err||mkImg(k+"_"+v+"_h").err;c.fillStyle="rgba(200,200,200,.85)";c.font="22px sans-serif";c.textAlign="center";if(bad){c.fillText("ملفات الموكاب مش موجودة على الموقع",CW/2,CH/2-14);c.font="16px sans-serif";c.fillText("ارفع ملف mockups.js جنب index.html",CW/2,CH/2+16)}else c.fillText("جاري تحميل الموكاب…",CW/2,CH/2);return}
  c.save();c.shadowColor="rgba(0,0,0,.35)";c.shadowBlur=22;c.shadowOffsetY=8;c.drawImage(base,b.x,b.y,b.w,b.h);c.restore();
  const s=mkImg(k+"_"+v+"_s"),L=paintCloth.L||(paintCloth.L=document.createElement("canvas"));L.width=CW;L.height=CH;const l=L.getContext("2d");
  clDesignFree(l,a,b.w*.9);
