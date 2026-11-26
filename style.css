@@ -242,3 +242,9 @@ button.tile{font:inherit;color:inherit;text-align:inherit;cursor:pointer}
 .lb-x,.lb-n{position:absolute;z-index:2;border:0;border-radius:50%;width:44px;height:44px;background:#ffffff26;color:#fff;font-size:26px;cursor:pointer;line-height:1}
 .lb-x{top:14px;inset-inline-start:14px}.lb-n{top:50%;transform:translateY(-50%)}.lb-p{inset-inline-start:10px}.lb-q{inset-inline-end:10px}
 .lb-c{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:#fff;font-size:14px;z-index:2}
+
+/* offers */
+.off-banner{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:14px 16px;margin-top:14px;border-radius:14px;background:linear-gradient(135deg,#7a1f1f,#b3412e);color:#fff;text-decoration:none}
+.off-banner b{font-size:19px;flex:1 1 100%}.off-banner span{font-size:14px;opacity:.95}.off-banner .cdx{margin-inline-start:auto;font-variant-numeric:tabular-nums;background:#0004;padding:2px 10px;border-radius:999px}
+.offtag{display:inline-block;align-self:flex-start;font-size:12px;color:var(--accent-text);border:1px solid var(--gold);border-radius:999px;padding:1px 9px}
+.note.offbox{border-color:var(--gold)}
