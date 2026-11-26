@@ -206,3 +206,13 @@ footer .wrap{padding-block:20px;display:flex;gap:12px;flex-wrap:wrap;justify-con
   .studio .form .row{flex-wrap:wrap;gap:6px}
   .studio input[type=range]{width:100%!important}
 }
+
+/* clothes designer */
+button.tile{font:inherit;color:inherit;text-align:inherit;cursor:pointer}
+.dz-colors{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0;position:relative}
+.sw.on{outline:2px solid var(--gold);outline-offset:2px}
+.sw.off{opacity:.4;cursor:not-allowed}
+.sw.off::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,transparent 45%,#d33 45%,#d33 55%,transparent 55%)}
+.dz-sizes{display:flex;flex-wrap:wrap;gap:6px}
+.dz-sizes .fbtn{min-height:44px;min-width:52px;font-size:16px}
